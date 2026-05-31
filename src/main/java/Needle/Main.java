@@ -5,7 +5,7 @@ public class Main {
 
         try {
             Core needle = new Core();
-            boolean flag = needle.isExactMatch("(a|b)*c+123?",  "abbc12");
+            boolean flag = needle.contains("(a|b)",  "yabiz");
             System.out.println(flag);
 
         }catch (Exception ex) {

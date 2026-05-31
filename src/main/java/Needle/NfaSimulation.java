@@ -22,7 +22,7 @@ public class NfaSimulation {
             Set<NfaBuilder.NfaNode> nextStates = new HashSet<>();
             for(NfaBuilder.NfaNode state : currentStates) {
                 for(NfaBuilder.Transition t : state.transitions) {
-                    if(t.accepts.contains(ch) || t.type == NfaBuilder.TransitionType.ANY) {
+                    if(matchesTransition(t, ch)) {
                         nextStates.add(t.to);
                     }
                 }
@@ -37,6 +37,39 @@ public class NfaSimulation {
 
         return currentStates.contains(graph.end);
     }
+
+    public boolean contains(String input) {
+        Set<NfaBuilder.NfaNode> current = epsClosure(graph.start);
+
+        if (current.contains(graph.end)) {
+            return true;
+        }
+
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+
+            current.addAll(epsClosure(graph.start));
+
+            Set<NfaBuilder.NfaNode> next = new HashSet<>();
+
+            for (NfaBuilder.NfaNode node : current) {
+                for (NfaBuilder.Transition t : node.transitions) {
+                    if (matchesTransition(t, c)) {
+                        next.addAll(epsClosure(t.to));
+                    }
+                }
+            }
+
+            current = next;
+
+            if (current.contains(graph.end)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     public Set<NfaBuilder.NfaNode> epsClosure(NfaBuilder.NfaNode start) {
         Set<NfaBuilder.NfaNode> closure = new HashSet<>();
@@ -58,4 +91,15 @@ public class NfaSimulation {
         return closure;
     }
 
+    private boolean matchesTransition(NfaBuilder.Transition t, char c) {
+        if (t.type == NfaBuilder.TransitionType.CHAR) {
+            return t.accepts.contains(c);
+        }
+
+        if (t.type == NfaBuilder.TransitionType.ANY) {
+            return true;
+        }
+
+        return false;
+    }
 }
