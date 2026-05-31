@@ -7,14 +7,19 @@ import java.util.List;
 public class AstPrinterTest {
 
     private String parse(String regex) {
-        Preprocessor preprocessor = new Preprocessor();
-        List<Preprocessor.Pchar> preprocessed = preprocessor.process(regex);
-        Lexer lexer = new Lexer(preprocessed);
-        List<Lexer.Token> tokens = lexer.scan();
-        Parser parser = new Parser(tokens);
-        AstNode root = parser.parse();
-        AstPrinter printer = new AstPrinter();
-        return root.accept(printer);
+        try {
+            Preprocessor preprocessor = new Preprocessor();
+            List<Preprocessor.Pchar> preprocessed = preprocessor.process(regex);
+            Lexer lexer = new Lexer(preprocessed);
+            List<Lexer.Token> tokens = lexer.scan();
+            Parser parser = new Parser(tokens);
+            AstNode root = parser.parse();
+            AstPrinter printer = new AstPrinter();
+            return root.accept(printer);
+        }catch (NeedleException ex) {
+            Assertions.fail(ex.getMessage());
+        }
+        return null;
     }
 
     @Test

@@ -17,6 +17,8 @@ public abstract class AstNode {
 
         R visitConcatExpr(ConcatExpr expr);
         R visitAlternationExpr(AlternationExpr expr);
+
+        R visitEmptyExpr(EmptyExpr expr);
     }
 
     public interface UnaryExpr {}
@@ -186,4 +188,13 @@ public abstract class AstNode {
         }
     }
 
+    // empty expr
+
+    // matches "" and ""
+    public static final class EmptyExpr extends AstNode {
+        @Override
+        public <R> R accept(AstVisitor<R> visitor) {
+            return visitor.visitEmptyExpr(this);
+        }
+    }
 }

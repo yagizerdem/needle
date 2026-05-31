@@ -262,5 +262,13 @@ public class NfaBuilder  implements AstNode.AstVisitor<NfaBuilder.NfaFragment> {
     }
 
 
+    @Override
+    public NfaFragment visitEmptyExpr(AstNode.EmptyExpr expr) {
+        NfaNode start = new NfaNode();
+        NfaNode end = new NfaNode();
 
+        addEps(start, end);
+
+        return new NfaFragment(start, end);
+    }
 }

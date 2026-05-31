@@ -46,7 +46,7 @@ public class Parser {
         return false;
     }
 
-    private Lexer.Token consume(Lexer.TokenType type, String message) {
+    private Lexer.Token consume(Lexer.TokenType type, String message) throws NeedleException {
         if (check(type)) {
             return advance();
         }
@@ -55,10 +55,6 @@ public class Parser {
     }
 
     private boolean check(Lexer.TokenType type) {
-        if (isAtEnd()) {
-            return false;
-        }
-
         return peek().type == type;
     }
 
@@ -66,8 +62,8 @@ public class Parser {
         return peek().type == Lexer.TokenType.EOF;
     }
 
-    private ParseError error(Lexer.Token token, String message) {
-        return new ParseError(
+    private NeedleException error(Lexer.Token token, String message) {
+        return new NeedleException(
                 "Parser error at token '" + token.lexeme + "': " + message
         );
     }
@@ -78,11 +74,17 @@ public class Parser {
         }
     }
 
-    public AstNode parse() {
-        return parseAlternation();
+    public AstNode parse() throws NeedleException {
+        if (check(Lexer.TokenType.EOF)) {
+            return new AstNode.EmptyExpr();
+        }
+
+        AstNode expr = parseAlternation();
+        consume(Lexer.TokenType.EOF, "Expected end of regex.");
+        return expr;
     }
 
-    private AstNode parseAlternation() {
+    private AstNode parseAlternation() throws NeedleException {
         List<AstNode> concatenationList = new ArrayList<>();
         concatenationList.add(parseConcatenation());
         while (match(Lexer.TokenType.PIPE)) {
@@ -91,7 +93,7 @@ public class Parser {
         return new AstNode.AlternationExpr(concatenationList);
     }
 
-    private AstNode parseConcatenation() {
+    private AstNode parseConcatenation() throws NeedleException {
         List<AstNode> astNodes = new ArrayList<>();
         astNodes.add(parseRepetition());
         while (isAtom()) {
@@ -101,7 +103,7 @@ public class Parser {
         return new AstNode.ConcatExpr(astNodes);
     }
 
-    private AstNode parseRepetition() {
+    private AstNode parseRepetition() throws NeedleException {
         AstNode expr = parseAtom();
 
         while (isQuantifier()) {
@@ -111,7 +113,7 @@ public class Parser {
         return expr;
     }
 
-    private AstNode parseQuantifier(AstNode child) {
+    private AstNode parseQuantifier(AstNode child) throws NeedleException{
         if (match(Lexer.TokenType.ASTERISK)) {
             return new AstNode.StarExpr(child);
         }
@@ -153,7 +155,7 @@ public class Parser {
         throw error(peek(), "Expected quantifier.");
     }
 
-    private int parseNumber() {
+    private int parseNumber() throws NeedleException {
         StringBuilder builder = new StringBuilder();
         while (!isAtEnd()) {
             String rawLexeme = peek().getRawLexeme();
@@ -183,7 +185,7 @@ public class Parser {
         }
     }
 
-    private AstNode parseAtom() {
+    private AstNode parseAtom() throws NeedleException {
         if (match(Lexer.TokenType.TEXT)) {
             return new AstNode.CharExpr(previous());
         }
@@ -207,7 +209,7 @@ public class Parser {
         throw error(peek(), "Expected atom.");
     }
 
-    private AstNode parseCharClass() {
+    private AstNode parseCharClass() throws NeedleException {
         consume(Lexer.TokenType.LEFT_BRACKET, "Expected '['.");
 
         boolean isNegated = match(Lexer.TokenType.CARET);
@@ -239,7 +241,7 @@ public class Parser {
         return new AstNode.BracketExpr(items, isNegated);
     }
 
-    private char parseCharClassChar() {
+    private char parseCharClassChar() throws NeedleException {
 
         if (check(Lexer.TokenType.RIGHT_BRACKET)) {
             throw error(peek(), "Unexpected ']' inside character class.");

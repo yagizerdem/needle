@@ -98,4 +98,8 @@ public class AstPrinter implements AstNode.AstVisitor<String> {
         return builder.toString();
     }
 
+    @Override
+    public String visitEmptyExpr(AstNode.EmptyExpr expr) {
+        return "";
+    }
 }
