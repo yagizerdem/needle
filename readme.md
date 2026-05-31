@@ -103,3 +103,9 @@ NfaSimulation ── simulates the NFA over the input
     ▼
 result (boolean / matching lines)
 ```
+## Author
+Yagiz Erdem \
+yagizerdem819@gmail.com
+
+## License
+Released under MIT License
