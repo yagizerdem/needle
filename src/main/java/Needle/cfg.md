@@ -17,7 +17,6 @@ Atom        &rarr; Literal
 | "."
 | CharClass
 | Group
-| Escape
 
 Group       &rarr; "(" Alternation ")"
 

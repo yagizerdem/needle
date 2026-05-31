@@ -1,5 +1,6 @@
 package Needle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
@@ -77,7 +78,182 @@ public class Parser {
         }
     }
 
-    public
+    public AstNode parse() {
+        return parseAlternation();
+    }
 
+    private AstNode parseAlternation() {
+        List<AstNode> concatenationList = new ArrayList<>();
+        concatenationList.add(parseConcatenation());
+        while (match(Lexer.TokenType.PIPE)) {
+            concatenationList.add(parseConcatenation());
+        }
+        return new AstNode.AlternationExpr(concatenationList);
+    }
+
+    private AstNode parseConcatenation() {
+        List<AstNode> astNodes = new ArrayList<>();
+        astNodes.add(parseRepetition());
+        while (isAtom()) {
+            astNodes.add(parseRepetition());
+        }
+
+        return new AstNode.ConcatExpr(astNodes);
+    }
+
+    private AstNode parseRepetition() {
+        AstNode expr = parseAtom();
+
+        while (isQuantifier()) {
+            expr = parseQuantifier(expr);
+        }
+
+        return expr;
+    }
+
+    private AstNode parseQuantifier(AstNode child) {
+        if (match(Lexer.TokenType.ASTERISK)) {
+            return new AstNode.StarExpr(child);
+        }
+
+        if (match(Lexer.TokenType.PLUS)) {
+            return new AstNode.PlusExpr(child);
+        }
+
+        if (match(Lexer.TokenType.QUESTION)) {
+            return new AstNode.OptionalExpr(child);
+        }
+
+        if (match(Lexer.TokenType.LEFT_CURLY_BRACE)) {
+            int min = parseNumber();
+
+            Integer max;
+
+            if (match(Lexer.TokenType.RIGHT_CURLY_BRACE)) {
+                max = min;              // {3}
+            } else {
+                consume(Lexer.TokenType.COMMA, "Expected ',' or '}' in repeat quantifier.");
+
+                if (check(Lexer.TokenType.RIGHT_CURLY_BRACE)) {
+                    max = null;         // {3,}
+                } else {
+                    max = parseNumber(); // {3,5}
+
+                    if (max < min) {
+                        throw error(previous(), "Repeat max cannot be smaller than min.");
+                    }
+                }
+
+                consume(Lexer.TokenType.RIGHT_BRACKET, "Expected '}' after repeat quantifier.");
+            }
+
+            return new AstNode.RepeatExpr(child, min, max);
+        }
+
+        throw error(peek(), "Expected quantifier.");
+    }
+
+    private int parseNumber() {
+        Lexer.Token token = advance();
+        String rawLexeme = token.getRawLexeme();
+        if (rawLexeme == null || rawLexeme.isEmpty()) {
+            throw error(token, "Expected number.");
+        }
+        for (int i = 0; i < rawLexeme.length(); i++) {
+            if (!Character.isDigit(rawLexeme.charAt(i))) {
+                throw error(token, "Expected number.");
+            }
+        }
+        try {
+            return Integer.parseInt(rawLexeme);
+        } catch (NumberFormatException e) {
+            throw error(token, "Invalid number.");
+        }
+    }
+
+    private AstNode parseAtom() {
+        if (match(Lexer.TokenType.TEXT)) {
+            return new AstNode.CharExpr(previous());
+        }
+
+        if (match(Lexer.TokenType.DOT)) {
+            return new AstNode.DotExpr(previous());
+        }
+
+        if (match(Lexer.TokenType.LEFT_PAREN)) {
+            AstNode expression = parseAlternation();
+
+            consume(Lexer.TokenType.RIGHT_PAREN, "Expected ')' after group.");
+
+            return new AstNode.GroupExpr(expression);
+        }
+
+        if (check(Lexer.TokenType.LEFT_BRACKET)) {
+            return parseCharClass();
+        }
+
+        throw error(peek(), "Expected atom.");
+    }
+
+    private AstNode parseCharClass() {
+        consume(Lexer.TokenType.LEFT_BRACKET, "Expected '['.");
+
+        boolean isNegated = match(Lexer.TokenType.CARET);
+
+        List<AstNode.BracketExpr.BracketItem> items = new ArrayList<>();
+
+        while (!check(Lexer.TokenType.RIGHT_BRACKET) && !isAtEnd()) {
+            char start = parseCharClassChar();
+
+            if (match(Lexer.TokenType.DASH) && !check(Lexer.TokenType.RIGHT_BRACKET)) {
+                char end = parseCharClassChar();
+
+                if (start > end) {
+                    throw error(previous(), "Invalid character range.");
+                }
+
+                items.add(new AstNode.BracketExpr.BracketRange(start, end));
+            } else {
+                items.add(new AstNode.BracketExpr.BracketChar(start));
+            }
+        }
+
+        consume(Lexer.TokenType.RIGHT_BRACKET, "Expected ']' after character class.");
+
+        if (items.isEmpty()) {
+            throw error(previous(), "Empty character class is not allowed.");
+        }
+
+        return new AstNode.BracketExpr(items, isNegated);
+    }
+
+    private char parseCharClassChar() {
+
+        if (check(Lexer.TokenType.RIGHT_BRACKET)) {
+            throw error(peek(), "Unexpected ']' inside character class.");
+        }
+
+        Lexer.Token token = advance();
+
+        if (token.lexeme == null || token.lexeme.isEmpty()) {
+            throw error(token, "Expected character inside character class.");
+        }
+
+        return token.lexeme.getFirst().ch;
+    }
+
+    private boolean isAtom() {
+        return check(Lexer.TokenType.TEXT)
+                || check(Lexer.TokenType.DOT)
+                || check(Lexer.TokenType.LEFT_BRACKET)
+                || check(Lexer.TokenType.LEFT_PAREN);
+    }
+
+    private boolean isQuantifier() {
+        return check(Lexer.TokenType.ASTERISK)
+                || check(Lexer.TokenType.PLUS)
+                || check(Lexer.TokenType.QUESTION)
+                || check(Lexer.TokenType.LEFT_CURLY_BRACE);
+    }
 
 }

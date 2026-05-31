@@ -19,7 +19,7 @@ public class AstNode {
         }
     }
 
-    public static final class CharExp extends AstNode implements Atom {
+    public static final class CharExpr extends AstNode implements Atom {
         public final Lexer.Token atom;
 
         public CharExp(Lexer.Token atom) {
@@ -80,25 +80,32 @@ public class AstNode {
         }
     }
 
+    public static final class RepeatExpr extends AstNode implements UnaryExpr {
+        public final AstNode child;
+        public final int min;
+        public final Integer max;
 
-    // binary expr
-    public static final class ConcatExpr extends AstNode implements BinaryExpr {
-        public final AstNode left;
-        public final AstNode right;
-
-        public ConcatExpr(AstNode left, AstNode right) {
-            this.left = left;
-            this.right = right;
+        public RepeatExpr(AstNode child, int min, Integer max) {
+            this.child = child;
+            this.min = min;
+            this.max = max;
         }
     }
 
-    public static final class AlternationExpr extends AstNode implements BinaryExpr {
-        public final AstNode left;
-        public final AstNode right;
+    // binary expr
+    public static final class ConcatExpr extends AstNode {
+        public final List<AstNode> parts;
 
-        public AlternationExpr(AstNode left, AstNode right) {
-            this.left = left;
-            this.right = right;
+        public ConcatExpr(List<AstNode> parts) {
+            this.parts = parts;
+        }
+    }
+
+    public static final class AlternationExpr extends AstNode {
+        public final List<AstNode> alternatives;
+
+        public AlternationExpr(List<AstNode> alternatives) {
+            this.alternatives = alternatives;
         }
     }
 
