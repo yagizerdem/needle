@@ -7,7 +7,7 @@ public class SubstringSearchTest {
     public boolean contains(String regex, String input){
         try {
             Core core = new Core();
-            return core.contains(regex, input);
+            return core.contains(core.compile(regex), input);
 
         }catch (Needle.NeedleException ex) {
             Assertions.fail(ex.getMessage());

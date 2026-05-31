@@ -7,7 +7,7 @@ public class NfaSimulationTest {
     public boolean isExactMatch(String regex, String input){
         try {
             Core core = new Core();
-            return core.isExactMatch(regex, input);
+            return core.isExactMatch(core.compile(regex), input);
 
         }catch (Needle.NeedleException ex) {
             Assertions.fail(ex.getMessage());
