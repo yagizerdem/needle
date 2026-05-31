@@ -10,9 +10,9 @@ A regex engine built from scratch in Java, based on Thompson NFA construction. I
 - Wildcard: `.`
 - Escapes: `\` for matching special characters literally
 - Three execution modes:
-  - `exact` — the entire input must match the pattern
-  - `contains` — any substring of the input must match
-  - `grep` — line-by-line search across the given files
+  - `exact` &rarr; the entire input must match the pattern
+  - `contains` &rarr; any substring of the input must match
+  - `grep` &rarr; line-by-line search across the given files
 
 ## Project Structure
 
