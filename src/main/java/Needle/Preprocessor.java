@@ -5,13 +5,13 @@ import java.util.List;
 
 public class Preprocessor {
     public static final class Pchar {
-        public char c;
+        public char ch;
         public boolean isEscaped;
         public int charAt;
 
         public Pchar() {}
-        public Pchar(char c, boolean isEscaped, int charAt) {
-            this.c = c;
+        public Pchar(char ch, boolean isEscaped, int charAt) {
+            this.ch = ch;
             this.isEscaped = isEscaped;
             this.charAt = charAt;
         }
