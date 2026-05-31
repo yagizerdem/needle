@@ -1,0 +1,10 @@
+hello world
+abc
+12345
+error: login1 failed
+INFO connection established
+WARN cache eviction
+ERROR database down
+foo bar3 baz
+StateMachine
+RaftServer StateMachine implementation

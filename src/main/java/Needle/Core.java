@@ -15,7 +15,7 @@ public class Core {
 
 
         NfaBuilder nfaBuilder = new NfaBuilder(root);
-        NfaBuilder.NfaFragment graph = nfaBuilder.build();
+        return nfaBuilder.build();
     }
 
     public boolean isExactMatch(NfaBuilder.NfaFragment graph, String input) {
