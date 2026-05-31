@@ -9,7 +9,7 @@ public class Main {
 
         try {
 
-            String regex = "\\w{3,10}";
+            String regex = "(a|b|x|y)*c+123?";
             Preprocessor preprocessor = new Preprocessor();
             List<Preprocessor.Pchar> preprocessed =  preprocessor.process(regex);
             Lexer lexer = new Lexer(preprocessed);
@@ -18,10 +18,16 @@ public class Main {
             Parser parser = new Parser(tokens);
             AstNode root = parser.parse();
 
-            AstPrinter printer = new AstPrinter();
-            String src = root.accept(printer);
 
-            System.out.println(src);
+            NfaBuilder nfaBuilder = new NfaBuilder(root);
+            NfaBuilder.NfaFragment graph = nfaBuilder.build();
+
+            NfaFragmentPrinter  nfaFragmentPrinter = new NfaFragmentPrinter();
+            nfaFragmentPrinter.print(graph);
+
+            System.out.println(graph);
+
+
         }catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
