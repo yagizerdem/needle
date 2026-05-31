@@ -68,9 +68,19 @@ public abstract class AstNode {
                 permits BracketChar, BracketRange {
         }
 
-        public record BracketChar(char value) implements BracketItem {}
+        public record BracketChar(char value) implements BracketItem {
+            @Override
+            public String toString() {
+                return String.valueOf(value());
+            }
+        }
 
-        public record BracketRange(char start, char end) implements BracketItem {}
+        public record BracketRange(char start, char end) implements BracketItem {
+            @Override
+            public String toString() {
+                return String.valueOf(start()) + "-" + String.valueOf(end());
+            }
+        }
 
         @Override
         public <R> R accept(AstVisitor<R> visitor) {

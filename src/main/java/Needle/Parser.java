@@ -144,7 +144,7 @@ public class Parser {
                     }
                 }
 
-                consume(Lexer.TokenType.RIGHT_BRACKET, "Expected '}' after repeat quantifier.");
+                consume(Lexer.TokenType.RIGHT_CURLY_BRACE, "Expected '}' after repeat quantifier.");
             }
 
             return new AstNode.RepeatExpr(child, min, max);
@@ -154,20 +154,32 @@ public class Parser {
     }
 
     private int parseNumber() {
-        Lexer.Token token = advance();
-        String rawLexeme = token.getRawLexeme();
-        if (rawLexeme == null || rawLexeme.isEmpty()) {
-            throw error(token, "Expected number.");
-        }
-        for (int i = 0; i < rawLexeme.length(); i++) {
-            if (!Character.isDigit(rawLexeme.charAt(i))) {
-                throw error(token, "Expected number.");
+        StringBuilder builder = new StringBuilder();
+        while (!isAtEnd()) {
+            String rawLexeme = peek().getRawLexeme();
+
+            if (rawLexeme == null || rawLexeme.length() != 1) {
+                break;
             }
+
+            char c = rawLexeme.charAt(0);
+
+            if (!Character.isDigit(c)) {
+                break;
+            }
+
+            builder.append(c);
+            advance();
         }
+
+        if (builder.isEmpty()) {
+            throw error(peek(), "Expected number.");
+        }
+
         try {
-            return Integer.parseInt(rawLexeme);
+            return Integer.parseInt(builder.toString());
         } catch (NumberFormatException e) {
-            throw error(token, "Invalid number.");
+            throw error(previous(), "Invalid number.");
         }
     }
 
